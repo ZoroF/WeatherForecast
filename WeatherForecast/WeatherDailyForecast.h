@@ -1,15 +1,13 @@
 //
-//  ViewController.h
+//  WeatherDailyForecast.h
 //  WeatherForecast
 //
 //  Created by Zoro on 15/11/3.
 //  Copyright © 2015年 Zoro. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
+#import "WeatherCondition.h"
 
-@interface ViewController : UIViewController
-
+@interface WeatherDailyForecast : WeatherCondition
 
 @end
-
