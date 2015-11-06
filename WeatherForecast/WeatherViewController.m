@@ -113,6 +113,16 @@
     self.tableView.frame = bounds;
 }
 
+#pragma mark - kvo
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context {
+    if ([keyPath isEqualToString:@"isError"] && object == [WeatherManager sharedManager]) {
+        if ([WeatherManager sharedManager].isError == YES) {
+            [self.tableView.header endRefreshing];
+            self.isFetching = NO;
+        }
+    }
+}
+
 #pragma mark - UITableViewDataSource
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -385,6 +395,11 @@
      subscribeNext:^(NSArray *newForecast) {
          [self.tableView reloadData];
      }];
+    
+    [[WeatherManager sharedManager] addObserver:self
+                                     forKeyPath:@"isError"
+                                        options:NSKeyValueObservingOptionNew
+                                        context:nil];
     
     // mjrefresh
     MJRefreshNormalHeader *refreshHeader = [MJRefreshNormalHeader headerWithRefreshingBlock:^{

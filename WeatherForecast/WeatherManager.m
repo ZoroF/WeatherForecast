@@ -15,6 +15,7 @@
 @property (nonatomic, strong, readwrite) CLLocation *currentLocation;
 @property (nonatomic, strong, readwrite) NSArray *hourlyForecast;
 @property (nonatomic, strong, readwrite) NSArray *dailyForecast;
+@property (nonatomic, assign, readwrite) BOOL isError;
 
 @property (nonatomic, strong) CLLocationManager *locationManager;
 @property (nonatomic, assign) BOOL isFirstUpdate;
@@ -55,6 +56,7 @@
              [TSMessage showNotificationWithTitle:@"Error"
                                          subtitle:@"Opps!获取最新天气时出了点问题，请检查网络设置。"
                                              type:TSMessageNotificationTypeError];
+               self.isError = YES;
          }];
     }
     return self;
@@ -64,6 +66,7 @@
     if (firstUpdate) {
         self.isFirstUpdate = YES;
     }
+    self.isError = NO;
     [self.locationManager startUpdatingLocation];
 }
 

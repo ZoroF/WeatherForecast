@@ -19,6 +19,7 @@
 @property (nonatomic, strong, readonly) WeatherCondition *currentCondition;
 @property (nonatomic, strong, readonly) NSArray *hourlyForecast;
 @property (nonatomic, strong, readonly) NSArray *dailyForecast;
+@property (nonatomic, assign, readonly) BOOL isError;
 
 - (void)findCurrentLocation:(BOOL)firstUpdate;
 
