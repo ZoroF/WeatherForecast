@@ -10,6 +10,7 @@
 #import "WeatherManager.h"
 #import "Reachability.h"
 #import "MJRefresh.h"
+#import "RACEXTScope.h"
 #import <LBBlurredImage/UIImageView+LBBlurredImage.h>
 @import Charts;
 
@@ -50,11 +51,6 @@
         NetworkStatus netStatus = [reachability currentReachabilityStatus];
         if (netStatus != NotReachable) {
             self.isNetError = NO;
-//            if (!self.isFetching) {
-//                self.isFetching = YES;
-//                [self.tableView.header beginRefreshing];
-//                [[WeatherManager sharedManager] findCurrentLocation:NO];
-//            }
         } else {
             self.isNetError = YES;
             self.isFetching = NO;
@@ -113,6 +109,85 @@
     self.tableView.frame = bounds;
 }
 
+- (LineChartView *)hourlyChartView {
+    if (nil == _hourlyChartView) {
+        _hourlyChartView = [[LineChartView alloc] init];
+        
+        _hourlyChartView.delegate = self;
+        
+        _hourlyChartView.dragEnabled = YES;
+        [_hourlyChartView setScaleEnabled:YES];
+        _hourlyChartView.drawGridBackgroundEnabled = NO;
+        _hourlyChartView.pinchZoomEnabled = YES;
+        
+        _hourlyChartView.backgroundColor = [UIColor clearColor];
+        
+        _hourlyChartView.legend.form = ChartLegendFormLine;
+        _hourlyChartView.legend.font = [UIFont fontWithName:@"HelveticaNeue-Light" size:11.f];
+        _hourlyChartView.legend.textColor = UIColor.whiteColor;
+        _hourlyChartView.legend.position = ChartLegendPositionBelowChartLeft;
+        
+        ChartXAxis *xAxis = _hourlyChartView.xAxis;
+        xAxis.labelFont = [UIFont systemFontOfSize:12.f];
+        xAxis.labelTextColor = UIColor.whiteColor;
+        xAxis.drawGridLinesEnabled = NO;
+        xAxis.drawAxisLineEnabled = NO;
+        xAxis.spaceBetweenLabels = 1.0;
+        
+        ChartYAxis *leftAxis = _hourlyChartView.leftAxis;
+        leftAxis.labelTextColor = [UIColor colorWithRed:51/255.f green:181/255.f blue:229/255.f alpha:1.f];
+        leftAxis.customAxisMax = 40;
+        leftAxis.customAxisMin = -10;
+        leftAxis.startAtZeroEnabled = NO;
+        leftAxis.drawGridLinesEnabled = NO;
+    }
+    
+    return _hourlyChartView;
+}
+
+-(LineChartView *)dailyChartView {
+    if (nil == _dailyChartView) {
+        _dailyChartView = [[LineChartView alloc] init];
+        
+        _dailyChartView.delegate = self;
+        
+        _dailyChartView.dragEnabled = YES;
+        [_dailyChartView setScaleEnabled:YES];
+        _dailyChartView.drawGridBackgroundEnabled = NO;
+        _dailyChartView.pinchZoomEnabled = YES;
+        
+        _dailyChartView.backgroundColor = [UIColor clearColor];
+        
+        _dailyChartView.legend.form = ChartLegendFormLine;
+        _dailyChartView.legend.font = [UIFont fontWithName:@"HelveticaNeue-Light" size:11.f];
+        _dailyChartView.legend.textColor = UIColor.whiteColor;
+        _dailyChartView.legend.position = ChartLegendPositionBelowChartLeft;
+        
+        ChartXAxis *xAxis = _dailyChartView.xAxis;
+        xAxis.labelFont = [UIFont systemFontOfSize:12.f];
+        xAxis.labelTextColor = UIColor.whiteColor;
+        xAxis.drawGridLinesEnabled = NO;
+        xAxis.drawAxisLineEnabled = NO;
+        xAxis.spaceBetweenLabels = 1.0;
+        
+        ChartYAxis *leftAxis = _dailyChartView.leftAxis;
+        leftAxis.labelTextColor = [UIColor colorWithRed:51/255.f green:181/255.f blue:229/255.f alpha:1.f];
+        leftAxis.customAxisMax = 40;
+        leftAxis.customAxisMin = -10;
+        leftAxis.startAtZeroEnabled = NO;
+        leftAxis.drawGridLinesEnabled = NO;
+        
+        ChartYAxis *rightAxis = _dailyChartView.rightAxis;
+        rightAxis.labelTextColor = UIColor.redColor;
+        rightAxis.customAxisMax = 40;
+        rightAxis.startAtZeroEnabled = NO;
+        rightAxis.customAxisMin = -10;
+        rightAxis.drawGridLinesEnabled = NO;
+    }
+    
+    return _dailyChartView;
+}
+
 #pragma mark - kvo
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSString *,id> *)change context:(void *)context {
     if ([keyPath isEqualToString:@"isError"] && object == [WeatherManager sharedManager]) {
@@ -151,7 +226,7 @@
     
     if (indexPath.section == 0) {
         if (indexPath.row == 0) {
-            [self configureHeaderCell:cell title:@"每小时预报"];
+            [self configureHeaderCell:cell title:@"每小时预报" forecast:[WeatherManager sharedManager].hourlyForecast];
         }
         else {
             WeatherCondition *weather = [WeatherManager sharedManager].hourlyForecast[indexPath.row - 1];
@@ -160,7 +235,7 @@
     }
     else if (indexPath.section == 1) {
         if (indexPath.row == 0) {
-            [self configureHeaderCell:cell title:@"每日预报"];
+            [self configureHeaderCell:cell title:@"每日预报" forecast:[WeatherManager sharedManager].dailyForecast];
         }
         else {
             WeatherCondition *weather = [WeatherManager sharedManager].dailyForecast[indexPath.row - 1];
@@ -171,11 +246,18 @@
     return cell;
 }
 
-- (void)configureHeaderCell:(UITableViewCell *)cell title:(NSString *)title {
+- (void)configureHeaderCell:(UITableViewCell *)cell title:(NSString *)title forecast:(NSArray *)forecast {
     cell.textLabel.font = [UIFont fontWithName:@"HelveticaNeue-Medium" size:18];
     cell.textLabel.text = title;
     cell.detailTextLabel.text = @"";
     cell.imageView.image = nil;
+    
+    // CGRect chartFrame = CGRectMake(0, 30, cell.contentView.bounds.size.width, 130);
+    if ([title isEqualToString:@"每小时预报"]) {
+        
+    } else if ([title isEqualToString:@"每日预报"]) {
+        
+    }
 }
 
 - (void)configureHourlyCell:(UITableViewCell *)cell weather:(WeatherCondition *)weather {
@@ -355,9 +437,13 @@
     sunSetLabel.font = [UIFont fontWithName:@"HelveticaNeue-Light" size:16];
     [header addSubview:sunSetLabel];
     
+    @weakify(self);
+    
     [[RACObserve([WeatherManager sharedManager], currentCondition)
       deliverOn:RACScheduler.mainThreadScheduler]
      subscribeNext:^(WeatherCondition *newCondition) {
+         @strongify(self);
+         
          self.isFetching = NO;
          
          temperatureLabel.text = [NSString stringWithFormat:@"%.0f°",[WeatherViewController temperatureFahrenheitToCelsius:newCondition.temperature].floatValue];
@@ -387,12 +473,14 @@
     [[RACObserve([WeatherManager sharedManager], hourlyForecast)
       deliverOn:RACScheduler.mainThreadScheduler]
      subscribeNext:^(NSArray *newForecast) {
+         @strongify(self);
          [self.tableView reloadData];
      }];
     
     [[RACObserve([WeatherManager sharedManager], dailyForecast)
       deliverOn:RACScheduler.mainThreadScheduler]
      subscribeNext:^(NSArray *newForecast) {
+         @strongify(self);
          [self.tableView reloadData];
      }];
     
@@ -403,6 +491,7 @@
     
     // mjrefresh
     MJRefreshNormalHeader *refreshHeader = [MJRefreshNormalHeader headerWithRefreshingBlock:^{
+        @strongify(self);
         if (YES == self.isNetError) {
             [self.tableView.header endRefreshing];
         } else if (NO == self.isFetching) {

@@ -9,6 +9,8 @@
 #import "WeatherManager.h"
 #import "WeatherClient.h"
 #import "TSMessage.h"
+#import "RACEXTScope.h"
+
 @interface WeatherManager ()
 
 @property (nonatomic, strong, readwrite) WeatherCondition *currentCondition;
@@ -36,6 +38,8 @@
 }
 
 - (id)init {
+    @weakify(self);
+    
     if (self = [super init]) {
         _locationManager = [[CLLocationManager alloc] init];
         _locationManager.delegate = self;
@@ -47,6 +51,7 @@
         
         [[[[RACObserve(self, currentLocation) ignore:nil]
            flattenMap:^(CLLocation *newLocation) {
+               @strongify(self);
                return [RACSignal merge:@[
                                          [self updateCurrentConditions],
                                          [self updateDailyForecast],
@@ -56,6 +61,7 @@
              [TSMessage showNotificationWithTitle:@"Error"
                                          subtitle:@"Opps!获取最新天气时出了点问题，请检查网络设置。"
                                              type:TSMessageNotificationTypeError];
+               @strongify(self);
                self.isError = YES;
          }];
     }
@@ -85,19 +91,25 @@
 }
 
 - (RACSignal *)updateCurrentConditions {
+    @weakify(self);
     return [[self.client fetchCurrentConditionsForLocation:self.currentLocation.coordinate] doNext:^(WeatherCondition *condition) {
+        @strongify(self);
         self.currentCondition = condition;
     }];
 }
 
 - (RACSignal *)updateHourlyForecast {
+    @weakify(self);
     return [[self.client fetchHourlyForecastForLocation:self.currentLocation.coordinate] doNext:^(NSArray *conditions) {
+        @strongify(self);
         self.hourlyForecast = conditions;
     }];
 }
 
 - (RACSignal *)updateDailyForecast {
+    @weakify(self);
     return [[self.client fetchDailyForecastForLocation:self.currentLocation.coordinate] doNext:^(NSArray *conditions) {
+        @strongify(self);
         self.dailyForecast = conditions;
     }];
 }

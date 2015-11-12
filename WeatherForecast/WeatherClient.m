@@ -9,6 +9,7 @@
 #import "WeatherClient.h"
 #import "WeatherCondition.h"
 #import "WeatherDailyForecast.h"
+#import "RACEXTScope.h"
 
 @interface WeatherClient ()
 
@@ -29,7 +30,11 @@
 - (RACSignal *)fetchJSONFromURL:(NSURL *)url {
     NSLog(@"Fetching: %@",url.absoluteString);
     
+    @weakify(self);
+    
     return [[RACSignal createSignal:^RACDisposable *(id<RACSubscriber> subscriber) {
+        @strongify(self);
+        
         NSURLSessionDataTask *dataTask = [self.session dataTaskWithURL:url
                                                      completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
             if (!error) {
